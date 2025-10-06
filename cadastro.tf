@@ -240,6 +240,8 @@ resource "aws_api_gateway_rest_api" "cadastro_api" {
     types = ["REGIONAL"]
   }
 
+  minimum_compression_size = 1024
+
   tags = {
     Name        = "cadastro-pet-api"
     Environment = "production"
@@ -425,7 +427,7 @@ resource "aws_api_gateway_integration_response" "cadastro_options_integration_re
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.reports_website.domain_name}'"
   }
 
   depends_on = [aws_api_gateway_integration.cadastro_options_integration]
@@ -455,7 +457,7 @@ resource "aws_api_gateway_integration_response" "listar_options_integration_resp
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.reports_website.domain_name}'"
   }
 
   depends_on = [aws_api_gateway_integration.listar_options_integration]
@@ -485,7 +487,7 @@ resource "aws_api_gateway_integration_response" "deletar_options_integration_res
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'DELETE,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.reports_website.domain_name}'"
   }
 
   depends_on = [aws_api_gateway_integration.deletar_options_integration]

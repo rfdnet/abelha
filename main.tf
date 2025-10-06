@@ -1,4 +1,4 @@
-mm# Configuração do Provider AWS
+# Configuração do Provider AWS
 terraform {
   required_providers {
     aws = {
@@ -34,30 +34,19 @@ resource "aws_s3_bucket_website_configuration" "reports_website" {
 resource "aws_s3_bucket_public_access_block" "reports_website" {
   bucket = aws_s3_bucket.reports_website.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
-# Política de bucket para permitir acesso público de leitura
-resource "aws_s3_bucket_policy" "reports_website" {
-  bucket = aws_s3_bucket.reports_website.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.reports_website.arn}/*"
-      }
-    ]
-  })
-
-  depends_on = [aws_s3_bucket_public_access_block.reports_website]
+# Origin Access Control for CloudFront -> S3
+resource "aws_cloudfront_origin_access_control" "oac" {
+  name                              = "reports-app-oac"
+  description                       = "OAC for CloudFront to access S3 privately"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 # Upload do arquivo index.html
@@ -76,7 +65,7 @@ resource "aws_s3_bucket_cors_configuration" "reports_website" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "HEAD"]
-    allowed_origins = ["*"]
+    allowed_origins = ["https://${aws_cloudfront_distribution.reports_website.domain_name}"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
@@ -179,19 +168,17 @@ resource "aws_cloudfront_distribution" "reports_website" {
   default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket_website_configuration.reports_website.website_endpoint
-    origin_id   = "s3-website-origin"
+    domain_name              = aws_s3_bucket.reports_website.bucket_regional_domain_name
+    origin_id                = "s3-rest-origin"
+    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"      # CloudFront -> S3 website via HTTP
-      origin_ssl_protocols   = ["TLSv1.2"]
+    s3_origin_config {
+      origin_access_identity = ""
     }
   }
 
   default_cache_behavior {
-    target_origin_id       = "s3-website-origin"
+    target_origin_id       = "s3-rest-origin"
     viewer_protocol_policy = "redirect-to-https"   # Força HTTPS para o cliente
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
@@ -202,6 +189,11 @@ resource "aws_cloudfront_distribution" "reports_website" {
       cookies {
         forward = "none"
       }
+    }
+
+    function_association {
+      event_type   = "viewer-response"
+      function_arn = aws_cloudfront_function.security_headers.arn
     }
   }
 
@@ -221,6 +213,53 @@ resource "aws_cloudfront_distribution" "reports_website" {
 output "cloudfront_domain" {
   description = "Domínio HTTPS do website (CloudFront)"
   value       = aws_cloudfront_distribution.reports_website.domain_name
+}
+
+# Bucket policy to allow access only from CloudFront via OAC
+resource "aws_s3_bucket_policy" "reports_website_oac" {
+  bucket = aws_s3_bucket.reports_website.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid: "AllowCloudFrontServicePrincipalReadOnly",
+        Effect: "Allow",
+        Principal: { Service: "cloudfront.amazonaws.com" },
+        Action: ["s3:GetObject"],
+        Resource: ["${aws_s3_bucket.reports_website.arn}/*"],
+        Condition: {
+          StringEquals: {
+            "AWS:SourceArn": aws_cloudfront_distribution.reports_website.arn
+          }
+        }
+      }
+    ]
+  })
+
+  depends_on = [aws_cloudfront_distribution.reports_website]
+}
+
+# CloudFront Function to add basic security headers
+resource "aws_cloudfront_function" "security_headers" {
+  name    = "reports-app-security-headers"
+  runtime = "cloudfront-js-1.0"
+  comment = "Add baseline security headers"
+  publish = true
+
+  code = <<-EOT
+function handler(event) {
+  var response = event.response;
+  var headers = response.headers;
+  headers['strict-transport-security'] = {value: 'max-age=31536000; includeSubDomains; preload'};
+  headers['x-content-type-options'] = {value: 'nosniff'};
+  headers['referrer-policy'] = {value: 'strict-origin-when-cross-origin'};
+  headers['permissions-policy'] = {value: 'microphone=(self)'};
+  // Basic CSP; consider hashing/nonce if moving inline JS to external file
+  headers['content-security-policy'] = {value: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https:"};
+  return response;
+}
+EOT
 }
 
 # Outputs para DynamoDB

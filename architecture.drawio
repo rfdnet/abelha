@@ -10,7 +10,7 @@
                  <mxCell id="cf" value="Amazon CloudFront" style="shape=mxgraph.aws4.cloudfront;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry x="220" y="250" width="120" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="s3" value="Amazon S3 (Static Website)" style="shape=mxgraph.aws4.s3;html=1;gradientColor=none;" parent="1" vertex="1">
+                <mxCell id="s3" value="Amazon S3 (Static Website)" style="shape=mxgraph.aws4.s3;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry x="400" y="250" width="140" height="120" as="geometry"/>
                 </mxCell>
                  <mxCell id="apigw" value="Amazon API Gateway" style="shape=mxgraph.aws4.api_gateway;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
