@@ -1,0 +1,1 @@
+{"statusCode": 400, "headers": {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token", "Access-Control-Allow-Methods": "DELETE,OPTIONS"}, "body": "{\"error\": \"pet_id \\u00e9 obrigat\\u00f3rio\", \"success\": false}"}

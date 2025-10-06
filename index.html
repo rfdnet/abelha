@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de PETs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .pet-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .btn-consult {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        .btn-consult:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-consult:active {
+            transform: translateY(0);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .pet-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .pet-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pet-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .pet-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pet-info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .pet-info-value {
+            color: #333;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .pet-date {
+            color: #888;
+            font-size: 0.9em;
+            text-align: right;
+            font-style: italic;
+        }
+
+        .pet-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-delete:active {
+            transform: translateY(0);
+        }
+
+        .btn-delete:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .no-pets {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            padding: 40px 20px;
+        }
+
+        .no-pets-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                padding: 20px;
+                width: 95%;
+            }
+
+            .pet-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="pet-icon">🐾</span>
+            <h1>Cadastro de PETs</h1>
+            <p>Cadastre seu pet de forma rápida e fácil</p>
+        </div>
+
+        <form id="petForm">
+            <div class="form-group">
+                <label for="petName">Nome do Pet *</label>
+                <input type="text" id="petName" name="petName" required placeholder="Digite o nome do seu pet">
+            </div>
+
+            <div class="form-group">
+                <label for="petAge">Idade do Pet *</label>
+                <input type="number" id="petAge" name="petAge" required placeholder="Digite a idade em anos" min="0" max="30">
+            </div>
+
+            <div class="form-group">
+                <label for="ownerName">Nome do Dono *</label>
+                <input type="text" id="ownerName" name="ownerName" required placeholder="Digite seu nome completo">
+            </div>
+
+            <button type="submit" class="btn-submit">
+                Cadastrar Pet
+            </button>
+        </form>
+
+        <button type="button" class="btn-consult" onclick="openConsultModal()">
+            📋 Listar PETS
+        </button>
+
+        <div id="successMessage" class="success-message">
+            Pet cadastrado com sucesso! 🎉
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            Por favor, preencha todos os campos corretamente.
+        </div>
+    </div>
+
+    <!-- Modal para consultar pets -->
+    <div id="consultModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeConsultModal()">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">📋 Lista de PETS</h2>
+            <div id="petsList"></div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação de exclusão -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px; color: #dc3545;">⚠️ Confirmar Exclusão</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #666;">
+                Tem certeza que deseja excluir o pet <strong id="petToDeleteName"></strong>?
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button onclick="closeDeleteModal()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Cancelar
+                </button>
+                <button id="confirmDeleteBtn" onclick="confirmDelete()" style="padding: 12px 24px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    🗑️ Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('petForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Esconder mensagens anteriores
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Pegar valores dos campos
+            const petName = document.getElementById('petName').value.trim();
+            const petAge = document.getElementById('petAge').value;
+            const ownerName = document.getElementById('ownerName').value.trim();
+            
+            // Validação
+            if (!petName || !petAge || !ownerName) {
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+            
+            if (petAge < 0 || petAge > 30) {
+                document.getElementById('errorMessage').textContent = 'A idade deve estar entre 0 e 30 anos.';
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+            
+            // Preparar dados para enviar à API
+            const petData = {
+                pet_name: petName,
+                pet_age: parseInt(petAge),
+                owner_name: ownerName
+            };
+            
+            // Mostrar loading
+            const submitButton = document.querySelector('.btn-submit');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Cadastrando...';
+            submitButton.disabled = true;
+            
+            // Chamar API Gateway para salvar no DynamoDB
+            fetch('https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/cadastrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(petData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Salvar também no localStorage para consulta local
+                    const localPetData = {
+                        id: data.pet_id,
+                        nome: petName,
+                        idade: petAge,
+                        dono: ownerName,
+                        dataCadastro: data.data.created_at
+                    };
+                    
+                    let pets = JSON.parse(localStorage.getItem('pets')) || [];
+                    pets.push(localPetData);
+                    localStorage.setItem('pets', JSON.stringify(pets));
+                    
+                    console.log('Pet cadastrado com sucesso:', data);
+                    
+                    // Mostrar mensagem de sucesso
+                    document.getElementById('successMessage').textContent = 'Pet cadastrado com sucesso! 🎉';
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Limpar formulário após 3 segundos
+                    setTimeout(() => {
+                        document.getElementById('petForm').reset();
+                        document.getElementById('successMessage').style.display = 'none';
+                    }, 3000);
+                } else {
+                    throw new Error(data.error || 'Erro ao cadastrar pet');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao cadastrar pet:', error);
+                
+                // Mostrar mensagem de erro
+                document.getElementById('errorMessage').textContent = `Erro: ${error.message}`;
+                document.getElementById('errorMessage').style.display = 'block';
+                
+                // Esconder erro após 5 segundos
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 5000);
+            })
+            .finally(() => {
+                // Restaurar botão
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            });
+        });
+
+        // Função para abrir modal de consulta
+        function openConsultModal() {
+            document.getElementById('consultModal').style.display = 'block';
+            loadPetsList();
+        }
+
+        // Função para fechar modal de consulta
+        function closeConsultModal() {
+            document.getElementById('consultModal').style.display = 'none';
+        }
+
+        // Fechar modal clicando fora dele
+        window.onclick = function(event) {
+            const consultModal = document.getElementById('consultModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (event.target == consultModal) {
+                consultModal.style.display = 'none';
+            }
+            if (event.target == deleteModal) {
+                deleteModal.style.display = 'none';
+            }
+        }
+
+        // Variável global para armazenar o pet a ser deletado
+        let petToDelete = null;
+
+        // Função para mostrar modal de confirmação de exclusão
+        function showDeleteConfirmation(petId, petName) {
+            petToDelete = petId;
+            document.getElementById('petToDeleteName').textContent = petName;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        // Função para fechar modal de confirmação
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            petToDelete = null;
+        }
+
+        // Função para confirmar exclusão
+        function confirmDelete() {
+            if (!petToDelete) {
+                console.error('Nenhum pet selecionado para exclusão');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Excluindo...';
+            confirmBtn.disabled = true;
+
+            // Chamar API para deletar pet
+            fetch(`https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/deletar/${petToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Pet deletado com sucesso:', data);
+                    
+                    // Fechar modal de confirmação
+                    closeDeleteModal();
+                    
+                    // Recarregar lista de pets
+                    loadPetsList();
+                    
+                    // Mostrar mensagem de sucesso temporária
+                    const petsListDiv = document.getElementById('petsList');
+                    const successMsg = document.createElement('div');
+                    successMsg.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #c3e6cb;">
+                            Pet excluído com sucesso! 🎉
+                        </div>
+                    `;
+                    petsListDiv.insertBefore(successMsg, petsListDiv.firstChild);
+                    
+                    // Remover mensagem após 3 segundos
+                    setTimeout(() => {
+                        if (successMsg.parentNode) {
+                            successMsg.parentNode.removeChild(successMsg);
+                        }
+                    }, 3000);
+                } else {
+                    throw new Error(data.error || 'Erro ao excluir pet');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao excluir pet:', error);
+                alert(`Erro ao excluir pet: ${error.message}`);
+            })
+            .finally(() => {
+                // Restaurar botão
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
+            });
+        }
+
+        // Função para carregar lista de pets do DynamoDB
+        function loadPetsList() {
+            const petsListDiv = document.getElementById('petsList');
+            
+            // Mostrar loading
+            petsListDiv.innerHTML = `
+                <div class="no-pets">
+                    <span class="no-pets-icon">⏳</span>
+                    <p>Carregando pets...</p>
+                </div>
+            `;
+            
+            // Buscar pets do DynamoDB via API
+            fetch('https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/listar')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.pets) {
+                        const pets = data.pets;
+                        
+                        if (pets.length === 0) {
+                            petsListDiv.innerHTML = `
+                                <div class="no-pets">
+                                    <span class="no-pets-icon">🐕</span>
+                                    <p>Nenhum pet cadastrado ainda!</p>
+                                    <p style="margin-top: 10px; font-size: 0.9em;">Cadastre seu primeiro pet usando o formulário acima.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        // Ordenar por data de criação (mais recentes primeiro)
+                        pets.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        
+                        petsListDiv.innerHTML = pets.map(pet => {
+                            const date = new Date(pet.created_at);
+                            const formattedDate = date.toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            
+                            return `
+                                <div class="pet-card">
+                                    <div class="pet-info">
+                                        <div class="pet-info-item">
+                                            <span class="pet-info-label">Nome do Pet</span>
+                                            <span class="pet-info-value">${pet.pet_name}</span>
+                                        </div>
+                                        <div class="pet-info-item">
+                                            <span class="pet-info-label">Idade</span>
+                                            <span class="pet-info-value">${pet.pet_age} ${pet.pet_age == 1 ? 'ano' : 'anos'}</span>
+                                        </div>
+                                        <div class="pet-info-item">
+                                            <span class="pet-info-label">Dono</span>
+                                            <span class="pet-info-value">${pet.owner_name}</span>
+                                        </div>
+                                        <div class="pet-info-item">
+                                            <span class="pet-info-label">Cadastrado em</span>
+                                            <span class="pet-info-value">${formattedDate}</span>
+                                        </div>
+                                    </div>
+                                    <div class="pet-actions">
+                                        <button class="btn-delete" onclick="showDeleteConfirmation('${pet.pet_id}', '${pet.pet_name}')">
+                                            🗑️ Excluir
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        console.log(`Carregados ${pets.length} pets do DynamoDB`);
+                    } else {
+                        throw new Error(data.error || 'Erro ao carregar pets');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar pets:', error);
+                    petsListDiv.innerHTML = `
+                        <div class="no-pets">
+                            <span class="no-pets-icon">❌</span>
+                            <p>Erro ao carregar pets</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;">${error.message}</p>
+                            <button onclick="loadPetsList()" style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        // Adicionar animação aos campos quando focados
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
