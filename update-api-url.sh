@@ -9,8 +9,9 @@ echo "🔧 Atualizando URL da API Gateway no index.html..."
 API_URL=$(terraform output -raw api_gateway_url 2>/dev/null)
 LISTAR_API_URL=$(terraform output -raw api_gateway_listar_url 2>/dev/null)
 DELETE_API_URL=$(terraform output -raw api_gateway_deletar_url 2>/dev/null)
+CF_DOMAIN=$(terraform output -raw cloudfront_domain 2>/dev/null)
 
-if [ -z "$API_URL" ] || [ -z "$LISTAR_API_URL" ] || [ -z "$DELETE_API_URL" ]; then
+if [ -z "$API_URL" ] || [ -z "$LISTAR_API_URL" ] || [ -z "$DELETE_API_URL" ] || [ -z "$CF_DOMAIN" ]; then
     echo "❌ Erro: Não foi possível obter as URLs da API Gateway do Terraform"
     echo "Certifique-se de que o terraform apply foi executado com sucesso"
     exit 1
@@ -19,6 +20,7 @@ fi
 echo "📡 URL da API de cadastro encontrada: $API_URL"
 echo "📡 URL da API de listar encontrada: $LISTAR_API_URL"
 echo "📡 URL da API de deletar encontrada: $DELETE_API_URL"
+echo "🌐 Domínio CloudFront encontrado: $CF_DOMAIN"
 
 # Verificar se o arquivo index.html existe
 if [ ! -f "index.html" ]; then
@@ -32,11 +34,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sed -i '' "s|REPLACE_WITH_API_URL|$API_URL|g" index.html
     sed -i '' "s|REPLACE_WITH_LISTAR_API_URL|$LISTAR_API_URL|g" index.html
     sed -i '' "s|REPLACE_WITH_DELETE_API_URL|$DELETE_API_URL|g" index.html
+    sed -i '' "s|REPLACE_WITH_CLOUDFRONT_DOMAIN|$CF_DOMAIN|g" index.html
 else
     # Linux
     sed -i "s|REPLACE_WITH_API_URL|$API_URL|g" index.html
     sed -i "s|REPLACE_WITH_LISTAR_API_URL|$LISTAR_API_URL|g" index.html
     sed -i "s|REPLACE_WITH_DELETE_API_URL|$DELETE_API_URL|g" index.html
+    sed -i "s|REPLACE_WITH_CLOUDFRONT_DOMAIN|$CF_DOMAIN|g" index.html
 fi
 
 echo "✅ URLs da API atualizadas com sucesso no index.html"

@@ -172,6 +172,57 @@ output "bucket_arn" {
   value       = aws_s3_bucket.reports_website.arn
 }
 
+# Distribuição CloudFront para servir o website via HTTPS
+resource "aws_cloudfront_distribution" "reports_website" {
+  enabled             = true
+  comment             = "reports-app website via CloudFront HTTPS"
+  default_root_object = "index.html"
+
+  origin {
+    domain_name = aws_s3_bucket_website_configuration.reports_website.website_endpoint
+    origin_id   = "s3-website-origin"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"      # CloudFront -> S3 website via HTTP
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "s3-website-origin"
+    viewer_protocol_policy = "redirect-to-https"   # Força HTTPS para o cliente
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = true
+
+    forwarded_values {
+      query_string = true
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  price_class = "PriceClass_100"  # regiões mais comuns (barateia)
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true  # HTTPS com domínio padrão do CloudFront
+  }
+}
+
+output "cloudfront_domain" {
+  description = "Domínio HTTPS do website (CloudFront)"
+  value       = aws_cloudfront_distribution.reports_website.domain_name
+}
+
 # Outputs para DynamoDB
 output "dynamodb_table_name" {
   description = "Nome da tabela DynamoDB"

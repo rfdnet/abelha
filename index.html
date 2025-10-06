@@ -353,7 +353,12 @@
         <form id="petForm">
             <div class="form-group">
                 <label for="petName">Nome do Pet *</label>
-                <input type="text" id="petName" name="petName" required placeholder="Digite o nome do seu pet">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="petName" name="petName" required placeholder="Digite o nome do seu pet" style="flex: 1;">
+                    <button type="button" id="btnTranscrever" title="Transcrever voz" style="padding: 12px 16px; background: #ff7a59; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                        🎤 Transcrever
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
@@ -712,6 +717,140 @@
                 this.parentElement.style.transform = 'scale(1)';
             });
         });
+
+        // Reconhecimento de fala (pt-BR) usando Web Speech API
+        (function setupSpeechRecognition() {
+            const btn = document.getElementById('btnTranscrever');
+            const petNameInput = document.getElementById('petName');
+            if (!btn) return;
+
+            // Domínio do CloudFront será injetado pelo script de deploy
+            const CLOUDFRONT_DOMAIN = 'dbt3re18kkkoh.cloudfront.net';
+
+            // Exigir contexto seguro (HTTPS ou localhost) para usar microfone
+            const isSecureContext = (window.isSecureContext === true) || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            if (!isSecureContext) {
+                // Se tivermos o domínio do CloudFront, redirecionar automaticamente para HTTPS
+                if (CLOUDFRONT_DOMAIN && CLOUDFRONT_DOMAIN !== 'dbt3re18kkkoh.cloudfront.net') {
+                    const httpsUrl = `https://${CLOUDFRONT_DOMAIN}${location.pathname}${location.search}${location.hash}`;
+                    window.location.replace(httpsUrl);
+                    return;
+                }
+                // Caso não tenhamos o domínio, manter orientação no botão
+                btn.disabled = true;
+                btn.textContent = '🔒 HTTPS necessário';
+                btn.title = 'Ative HTTPS no site para usar o microfone';
+                return;
+            }
+
+            // Checar suporte a getUserMedia para solicitar permissão antecipadamente
+            const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                btn.disabled = true;
+                btn.textContent = '🎤 Indisponível';
+                btn.title = 'Reconhecimento de voz não suportado neste navegador';
+                return;
+            }
+
+            let isListening = false;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.interimResults = true;
+            recognition.continuous = false;
+
+            let interimTranscript = '';
+
+            async function ensureMicPermission() {
+                if (!hasMediaDevices) return true; // sem getUserMedia, deixe o SpeechRecognition tentar
+                try {
+                    // Solicita permissão do microfone antes de iniciar o reconhecimento
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    // Interrompe imediatamente para liberar o dispositivo
+                    stream.getTracks().forEach(t => t.stop());
+                    return true;
+                } catch (err) {
+                    const errDiv = document.getElementById('errorMessage');
+                    if (errDiv) {
+                        errDiv.textContent = 'Permissão do microfone negada. Verifique as permissões do navegador.';
+                        errDiv.style.display = 'block';
+                        setTimeout(() => { errDiv.style.display = 'none'; }, 5000);
+                    }
+                    return false;
+                }
+            }
+
+            function startListening() {
+                interimTranscript = '';
+                recognition.start();
+                isListening = true;
+                btn.textContent = '🛑 Parar';
+                btn.style.background = '#dc3545';
+                btn.title = 'Clique para parar a transcrição';
+            }
+
+            function stopListening() {
+                recognition.stop();
+                isListening = false;
+                btn.textContent = '🎤 Transcrever';
+                btn.style.background = '#ff7a59';
+                btn.title = 'Clique para falar e transcrever o nome do pet';
+            }
+
+            btn.addEventListener('click', async () => {
+                if (isListening) {
+                    stopListening();
+                } else {
+                    const granted = await ensureMicPermission();
+                    if (granted) {
+                        startListening();
+                    }
+                }
+            });
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                const combined = (finalTranscript || interimTranscript).trim();
+                if (combined) {
+                    petNameInput.value = combined;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Erro no reconhecimento de fala:', event.error);
+                stopListening();
+                const errDiv = document.getElementById('errorMessage');
+                if (errDiv) {
+                    let message = `Erro de transcrição: ${event.error}`;
+                    if (event.error === 'not-allowed') {
+                        message = 'Permissão do microfone negada. Conceda acesso ao microfone nas configurações do navegador.';
+                    } else if (event.error === 'no-speech') {
+                        message = 'Nenhuma fala detectada. Tente novamente.';
+                    } else if (event.error === 'aborted') {
+                        message = 'Transcrição interrompida.';
+                    }
+                    errDiv.textContent = message;
+                    errDiv.style.display = 'block';
+                    setTimeout(() => { errDiv.style.display = 'none'; }, 5000);
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    // Caso o reconhecimento pare automaticamente, volte o botão
+                    stopListening();
+                }
+            };
+        })();
+
     </script>
 </body>
 </html>
