@@ -355,7 +355,7 @@
                 <label for="petName">Nome do Pet *</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="petName" name="petName" required placeholder="Digite o nome do seu pet" style="flex: 1;">
-                    <button type="button" id="btnTranscrever" title="Transcrever voz" style="padding: 12px 16px; background: #ff7a59; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                    <button type="button" class="voice-btn" data-target="petName" title="Transcrever voz" style="padding: 12px 16px; background: #ff7a59; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">
                         🎤 Transcrever
                     </button>
                 </div>
@@ -363,12 +363,22 @@
 
             <div class="form-group">
                 <label for="petAge">Idade do Pet *</label>
-                <input type="number" id="petAge" name="petAge" required placeholder="Digite a idade em anos" min="0" max="30">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="petAge" name="petAge" required placeholder="Digite a idade em anos" min="0" max="30" style="flex: 1;">
+                    <button type="button" class="voice-btn" data-target="petAge" title="Transcrever voz" style="padding: 12px 16px; background: #ff7a59; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                        🎤 Transcrever
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="ownerName">Nome do Dono *</label>
-                <input type="text" id="ownerName" name="ownerName" required placeholder="Digite seu nome completo">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="ownerName" name="ownerName" required placeholder="Digite seu nome completo" style="flex: 1;">
+                    <button type="button" class="voice-btn" data-target="ownerName" title="Transcrever voz" style="padding: 12px 16px; background: #ff7a59; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                        🎤 Transcrever
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit">
@@ -720,9 +730,13 @@
 
         // Reconhecimento de fala (pt-BR) usando Web Speech API
         (function setupSpeechRecognition() {
-            const btn = document.getElementById('btnTranscrever');
-            const petNameInput = document.getElementById('petName');
-            if (!btn) return;
+            const voiceButtons = Array.from(document.querySelectorAll('.voice-btn'));
+            const inputsById = {
+                petName: document.getElementById('petName'),
+                petAge: document.getElementById('petAge'),
+                ownerName: document.getElementById('ownerName')
+            };
+            if (voiceButtons.length === 0) return;
 
             // Domínio do CloudFront será injetado pelo script de deploy
             const CLOUDFRONT_DOMAIN = 'dbt3re18kkkoh.cloudfront.net';
@@ -737,9 +751,11 @@
                     return;
                 }
                 // Caso não tenhamos o domínio, manter orientação no botão
-                btn.disabled = true;
-                btn.textContent = '🔒 HTTPS necessário';
-                btn.title = 'Ative HTTPS no site para usar o microfone';
+                voiceButtons.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '🔒 HTTPS necessário';
+                    b.title = 'Ative HTTPS no site para usar o microfone';
+                });
                 return;
             }
 
@@ -747,13 +763,17 @@
             const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                btn.disabled = true;
-                btn.textContent = '🎤 Indisponível';
-                btn.title = 'Reconhecimento de voz não suportado neste navegador';
+                voiceButtons.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '🎤 Indisponível';
+                    b.title = 'Reconhecimento de voz não suportado neste navegador';
+                });
                 return;
             }
 
             let isListening = false;
+            let currentButton = null;
+            let currentInput = null;
             const recognition = new SpeechRecognition();
             recognition.lang = 'pt-BR';
             recognition.interimResults = true;
@@ -780,32 +800,43 @@
                 }
             }
 
-            function startListening() {
+            function startListening(button, input) {
                 interimTranscript = '';
                 recognition.start();
                 isListening = true;
-                btn.textContent = '🛑 Parar';
-                btn.style.background = '#dc3545';
-                btn.title = 'Clique para parar a transcrição';
+                currentButton = button;
+                currentInput = input;
+                currentButton.textContent = '🛑 Parar';
+                currentButton.style.background = '#dc3545';
+                currentButton.title = 'Clique para parar a transcrição';
             }
 
             function stopListening() {
                 recognition.stop();
                 isListening = false;
-                btn.textContent = '🎤 Transcrever';
-                btn.style.background = '#ff7a59';
-                btn.title = 'Clique para falar e transcrever o nome do pet';
+                voiceButtons.forEach(b => {
+                    b.textContent = '🎤 Transcrever';
+                    b.style.background = '#ff7a59';
+                    b.title = 'Clique para falar e transcrever';
+                });
+                currentButton = null;
+                currentInput = null;
             }
 
-            btn.addEventListener('click', async () => {
-                if (isListening) {
-                    stopListening();
-                } else {
+            voiceButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    if (isListening && currentButton === button) {
+                        stopListening();
+                        return;
+                    }
+                    const inputId = button.getAttribute('data-target');
+                    const targetInput = inputsById[inputId];
+                    if (!targetInput) return;
                     const granted = await ensureMicPermission();
                     if (granted) {
-                        startListening();
+                        startListening(button, targetInput);
                     }
-                }
+                });
             });
 
             recognition.onresult = (event) => {
@@ -819,8 +850,31 @@
                     }
                 }
                 const combined = (finalTranscript || interimTranscript).trim();
-                if (combined) {
-                    petNameInput.value = combined;
+                if (!combined || !currentInput) return;
+                if (currentInput.type === 'number') {
+                    // Tentar extrair número do texto (suporta dígitos e palavras simples 0-30)
+                    const digitsMatch = combined.match(/\d+/);
+                    let value = digitsMatch ? parseInt(digitsMatch[0], 10) : NaN;
+                    if (isNaN(value)) {
+                        const ptNumbers = {
+                            'zero': 0, 'um': 1, 'uma': 1, 'dois': 2, 'duas': 2, 'três': 3, 'tres': 3, 'quatro': 4,
+                            'cinco': 5, 'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9, 'dez': 10, 'onze': 11,
+                            'doze': 12, 'treze': 13, 'catorze': 14, 'quatorze': 14, 'quinze': 15, 'dezesseis': 16,
+                            'dezessete': 17, 'dezoito': 18, 'dezenove': 19, 'vinte': 20, 'vinte e um': 21,
+                            'vinte e dois': 22, 'vinte e três': 23, 'vinte e quatro': 24, 'vinte e cinco': 25,
+                            'vinte e seis': 26, 'vinte e sete': 27, 'vinte e oito': 28, 'vinte e nove': 29,
+                            'trinta': 30
+                        };
+                        const normalized = combined.toLowerCase().trim();
+                        if (ptNumbers.hasOwnProperty(normalized)) {
+                            value = ptNumbers[normalized];
+                        }
+                    }
+                    if (!isNaN(value)) {
+                        currentInput.value = value;
+                    }
+                } else {
+                    currentInput.value = combined;
                 }
             };
 

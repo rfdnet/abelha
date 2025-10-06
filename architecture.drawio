@@ -1,0 +1,76 @@
+<mxfile host="65bd71144e">
+    <diagram id="aws-architecture" name="AWS Architecture">
+        <mxGraphModel dx="734" dy="721" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="user" value="Usuário (Browser)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="260" width="60" height="120" as="geometry"/>
+                </mxCell>
+                 <mxCell id="cf" value="Amazon CloudFront" style="shape=mxgraph.aws4.cloudfront;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="250" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="s3" value="Amazon S3 (Static Website)" style="shape=mxgraph.aws4.s3;html=1;gradientColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="250" width="140" height="120" as="geometry"/>
+                </mxCell>
+                 <mxCell id="apigw" value="Amazon API Gateway" style="shape=mxgraph.aws4.api_gateway;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="80" width="140" height="100" as="geometry"/>
+                </mxCell>
+                 <mxCell id="lambdaCadastrar" value="Lambda cadastrar" style="shape=mxgraph.aws4.lambda;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="40" width="140" height="80" as="geometry"/>
+                </mxCell>
+                 <mxCell id="lambdaListar" value="Lambda listar" style="shape=mxgraph.aws4.lambda;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="130" width="140" height="80" as="geometry"/>
+                </mxCell>
+                 <mxCell id="lambdaDeletar" value="Lambda deletar" style="shape=mxgraph.aws4.lambda;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="220" width="140" height="80" as="geometry"/>
+                </mxCell>
+                 <mxCell id="ddb" value="Amazon DynamoDB" style="shape=mxgraph.aws4.dynamodb;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="120" width="140" height="120" as="geometry"/>
+                </mxCell>
+                 <mxCell id="cw" value="Amazon CloudWatch Logs" style="shape=mxgraph.aws4.cloudwatch;html=1;gradientColor=none;fontColor=#232F3E;strokeColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="270" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" parent="1" source="user" target="cf" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e2" parent="1" source="cf" target="s3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" parent="1" source="user" target="apigw" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" parent="1" source="apigw" target="lambdaCadastrar" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" parent="1" source="apigw" target="lambdaListar" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" parent="1" source="apigw" target="lambdaDeletar" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" parent="1" source="lambdaCadastrar" target="ddb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" parent="1" source="lambdaListar" target="ddb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" parent="1" source="lambdaDeletar" target="ddb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" parent="1" source="lambdaCadastrar" target="cw" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" parent="1" source="lambdaListar" target="cw" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" parent="1" source="lambdaDeletar" target="cw" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                 
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
