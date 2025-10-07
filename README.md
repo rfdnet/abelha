@@ -46,7 +46,7 @@ Notas:
 
 ## Deploy (CLI)
 ```bash
-cd /Users/reinaldo/Documents/DEV/reports-app
+cd /Users/abelha/Documents/DEV/reports-app
 
 # 1) Inicializar providers
 terraform init
