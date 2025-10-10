@@ -105,8 +105,8 @@ resource "aws_lambda_function" "cadastro_pet" {
   function_name    = "cadastro-pet"
   role            = aws_iam_role.lambda_cadastro_role.arn
   handler         = "cadastro.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 30
+  runtime         = "python3.11"
+  timeout         = 5
   memory_size     = 128
 
   source_code_hash = data.archive_file.cadastro_lambda_zip.output_base64sha256
@@ -137,8 +137,8 @@ resource "aws_lambda_function" "listar_pets" {
   function_name    = "listar-pets"
   role            = aws_iam_role.lambda_cadastro_role.arn
   handler         = "listar.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 30
+  runtime         = "python3.11"
+  timeout         = 5
   memory_size     = 128
 
   source_code_hash = data.archive_file.listar_lambda_zip.output_base64sha256
@@ -169,8 +169,8 @@ resource "aws_lambda_function" "deletar_pet" {
   function_name    = "deletar-pet"
   role            = aws_iam_role.lambda_cadastro_role.arn
   handler         = "deletar.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 30
+  runtime         = "python3.11"
+  timeout         = 5
   memory_size     = 128
 
   source_code_hash = data.archive_file.deletar_lambda_zip.output_base64sha256
@@ -198,7 +198,7 @@ resource "aws_lambda_function" "deletar_pet" {
 # Log Group para a função Lambda de cadastro
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/cadastro-pet"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = {
     Name        = "cadastro-pet-logs"
@@ -210,7 +210,7 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 # Log Group para a função Lambda de listar
 resource "aws_cloudwatch_log_group" "lambda_listar_logs" {
   name              = "/aws/lambda/listar-pets"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = {
     Name        = "listar-pets-logs"
@@ -222,7 +222,7 @@ resource "aws_cloudwatch_log_group" "lambda_listar_logs" {
 # Log Group para a função Lambda de deletar
 resource "aws_cloudwatch_log_group" "lambda_deletar_logs" {
   name              = "/aws/lambda/deletar-pet"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = {
     Name        = "deletar-pet-logs"

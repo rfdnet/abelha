@@ -466,7 +466,7 @@
             submitButton.disabled = true;
             
             // Chamar API Gateway para salvar no DynamoDB
-            fetch('https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/cadastrar', {
+            fetch('https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/cadastrar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -575,7 +575,7 @@
             confirmBtn.disabled = true;
 
             // Chamar API para deletar pet
-            fetch(`https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/deletar/${petToDelete}`, {
+            fetch(`https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/deletar/${petToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -636,7 +636,7 @@
             `;
             
             // Buscar pets do DynamoDB via API
-            fetch('https://c15wuqqnm6.execute-api.us-east-1.amazonaws.com/prod/listar')
+            fetch('https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/listar')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pets) {
@@ -739,7 +739,7 @@
             if (voiceButtons.length === 0) return;
 
             // Domínio do CloudFront será injetado pelo script de deploy
-            const CLOUDFRONT_DOMAIN = 'dbt3re18kkkoh.cloudfront.net';
+            const CLOUDFRONT_DOMAIN = 'dxylcq1l3pspj.cloudfront.net';
 
             // Exigir contexto seguro (HTTPS ou localhost) para usar microfone
             const isSecureContext = (window.isSecureContext === true) || location.hostname === 'localhost' || location.hostname === '127.0.0.1';

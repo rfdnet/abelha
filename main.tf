@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"  # Altere para sua região preferida
+  region = "us-west-2"  # Oregon - região mais barata
 }
 
 # Bucket S3 para hospedagem estática
@@ -133,10 +133,10 @@ resource "aws_dynamodb_table" "cadastropet" {
     enabled = true
   }
   
-  # Configurações de TTL (Time To Live) - opcional, para limpeza automática
+  # Configurações de TTL (Time To Live) - limpeza automática após 30 dias
   ttl {
     attribute_name = "ttl"
-    enabled        = false  # Desabilitado por padrão, pode ser habilitado se necessário
+    enabled        = true  # Habilita limpeza automática para reduzir custos
   }
 }
 
@@ -240,7 +240,7 @@ resource "aws_s3_bucket_policy" "reports_website_oac" {
   depends_on = [aws_cloudfront_distribution.reports_website]
 }
 
-# CloudFront Function to add basic security headers
+# CloudFront Function to add basic security headers (optimized for cost)
 resource "aws_cloudfront_function" "security_headers" {
   name    = "reports-app-security-headers"
   runtime = "cloudfront-js-1.0"
@@ -251,12 +251,9 @@ resource "aws_cloudfront_function" "security_headers" {
 function handler(event) {
   var response = event.response;
   var headers = response.headers;
-  headers['strict-transport-security'] = {value: 'max-age=31536000; includeSubDomains; preload'};
+  headers['strict-transport-security'] = {value: 'max-age=31536000'};
   headers['x-content-type-options'] = {value: 'nosniff'};
-  headers['referrer-policy'] = {value: 'strict-origin-when-cross-origin'};
   headers['permissions-policy'] = {value: 'microphone=(self)'};
-  // Basic CSP; consider hashing/nonce if moving inline JS to external file
-  headers['content-security-policy'] = {value: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https:"};
   return response;
 }
 EOT
