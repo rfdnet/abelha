@@ -428,6 +428,15 @@
     </div>
 
     <script>
+        // Configurações da API - serão substituídas durante o deploy
+        const API_CONFIG = {
+            CADASTRAR_URL: 'https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/cadastrar',
+            LISTAR_URL: 'https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/listar',
+            DELETAR_URL: 'https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/deletar',
+            CLOUDFRONT_DOMAIN: 'dxylcq1l3pspj.cloudfront.net',
+            API_KEY: 'uL879J2IMq3o67z9Xl3Ay8C4DxRbwYmE3CoDQZHZ'
+        };
+
         document.getElementById('petForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -466,10 +475,11 @@
             submitButton.disabled = true;
             
             // Chamar API Gateway para salvar no DynamoDB
-            fetch('https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/cadastrar', {
+            fetch(API_CONFIG.CADASTRAR_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-api-key': API_CONFIG.API_KEY
                 },
                 body: JSON.stringify(petData)
             })
@@ -575,10 +585,11 @@
             confirmBtn.disabled = true;
 
             // Chamar API para deletar pet
-            fetch(`https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/deletar/${petToDelete}`, {
+            fetch(`${API_CONFIG.DELETAR_URL}/${petToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-api-key': API_CONFIG.API_KEY
                 }
             })
             .then(response => response.json())
@@ -636,7 +647,11 @@
             `;
             
             // Buscar pets do DynamoDB via API
-            fetch('https://jncx39loi4.execute-api.us-west-2.amazonaws.com/prod/listar')
+            fetch(API_CONFIG.LISTAR_URL, {
+                headers: {
+                    'x-api-key': API_CONFIG.API_KEY
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pets) {
@@ -739,7 +754,7 @@
             if (voiceButtons.length === 0) return;
 
             // Domínio do CloudFront será injetado pelo script de deploy
-            const CLOUDFRONT_DOMAIN = 'dxylcq1l3pspj.cloudfront.net';
+            const CLOUDFRONT_DOMAIN = API_CONFIG.CLOUDFRONT_DOMAIN;
 
             // Exigir contexto seguro (HTTPS ou localhost) para usar microfone
             const isSecureContext = (window.isSecureContext === true) || location.hostname === 'localhost' || location.hostname === '127.0.0.1';

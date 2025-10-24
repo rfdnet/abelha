@@ -283,6 +283,7 @@ resource "aws_api_gateway_method" "cadastro_post" {
   resource_id   = aws_api_gateway_resource.cadastro_resource.id
   http_method   = "POST"
   authorization = "NONE"
+  api_key_required = true
 }
 
 # Método OPTIONS para CORS (cadastro)
@@ -299,6 +300,7 @@ resource "aws_api_gateway_method" "listar_get" {
   resource_id   = aws_api_gateway_resource.listar_resource.id
   http_method   = "GET"
   authorization = "NONE"
+  api_key_required = true
 }
 
 # Método OPTIONS para CORS (listar)
@@ -315,6 +317,7 @@ resource "aws_api_gateway_method" "deletar_delete" {
   resource_id   = aws_api_gateway_resource.deletar_pet_resource.id
   http_method   = "DELETE"
   authorization = "NONE"
+  api_key_required = true
 }
 
 # Método OPTIONS para CORS (deletar)
@@ -528,15 +531,77 @@ resource "aws_api_gateway_deployment" "cadastro_deployment" {
     aws_api_gateway_integration.deletar_integration,
     aws_api_gateway_integration_response.cadastro_options_integration_response,
     aws_api_gateway_integration_response.listar_options_integration_response,
-    aws_api_gateway_integration_response.deletar_options_integration_response
+    aws_api_gateway_integration_response.deletar_options_integration_response,
+    aws_api_gateway_method.cadastro_post,
+    aws_api_gateway_method.listar_get,
+    aws_api_gateway_method.deletar_delete
   ]
 
   rest_api_id = aws_api_gateway_rest_api.cadastro_api.id
   stage_name  = "prod"
 
+  # Forçar redeploy quando os métodos mudarem
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_method.cadastro_post.id,
+      aws_api_gateway_method.listar_get.id,
+      aws_api_gateway_method.deletar_delete.id,
+      aws_api_gateway_integration.cadastro_integration.id,
+      aws_api_gateway_integration.listar_integration.id,
+      aws_api_gateway_integration.deletar_integration.id,
+    ]))
+  }
+
   lifecycle {
     create_before_destroy = true
   }
+}
+
+# API Key para segurança
+resource "aws_api_gateway_api_key" "cadastro_api_key" {
+  name        = "cadastro-pet-api-key"
+  description = "API Key para acesso ao sistema de cadastro de pets"
+  enabled     = true
+
+  tags = {
+    Name        = "cadastro-pet-api-key"
+    Environment = "production"
+    Project     = "reports-app"
+  }
+}
+
+# Usage Plan com rate limiting
+resource "aws_api_gateway_usage_plan" "cadastro_usage_plan" {
+  name        = "cadastro-pet-usage-plan"
+  description = "Usage plan para API de cadastro de pets com rate limiting"
+
+  api_stages {
+    api_id = aws_api_gateway_rest_api.cadastro_api.id
+    stage  = aws_api_gateway_deployment.cadastro_deployment.stage_name
+  }
+
+  quota_settings {
+    limit  = 10000
+    period = "DAY"
+  }
+
+  throttle_settings {
+    burst_limit = 100
+    rate_limit  = 50
+  }
+
+  tags = {
+    Name        = "cadastro-pet-usage-plan"
+    Environment = "production"
+    Project     = "reports-app"
+  }
+}
+
+# Associar API Key ao Usage Plan
+resource "aws_api_gateway_usage_plan_key" "cadastro_usage_plan_key" {
+  key_id        = aws_api_gateway_api_key.cadastro_api_key.id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.cadastro_usage_plan.id
 }
 
 # Outputs
@@ -588,4 +653,10 @@ output "deletar_lambda_function_name" {
 output "deletar_lambda_function_arn" {
   description = "ARN da função Lambda de deletar"
   value       = aws_lambda_function.deletar_pet.arn
+}
+
+output "api_key" {
+  description = "API Key para acesso às APIs"
+  value       = aws_api_gateway_api_key.cadastro_api_key.value
+  sensitive   = true
 }
